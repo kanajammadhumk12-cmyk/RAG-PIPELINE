@@ -1,95 +1,41 @@
-# RAG Pipeline for EHR Documents
+# VME
 
-A complete Retrieval-Augmented Generation (RAG) pipeline for processing Electronic Health Record (EHR) documents using multiple vector databases and embedding strategies.
+VME includes a browser frontend and a Node.js backend with SQLite-backed user accounts, scrypt password hashing, email verification, and secure HTTP-only sessions.
 
-## Features
+- `frontend/` contains the HTML, CSS, and browser JavaScript.
+- `backend/` contains the HTTP server and authentication service.
+- User records and sessions are stored in `backend/data/vme.sqlite`.
 
-- **Document Ingestion**: Upload and process Markdown EHR files (patient demographics, medical history, vitals, labs)
-- **Three Chunking Strategies**: Fixed-size, sliding window, semantic chunking
-- **Multi-Embedding Support**: gte-Qwen2-1.5B, e5-large-v2, bge-m3 models
-- **Vector Database Integration**: Chroma Cloud, Pinecone, Weaviate Cloud
-- **LLM Generation**: Groq API with context-bound prompting
+## Configure email
 
-## Pipeline Overview
+Registration verification and password reset codes are sent through your SMTP provider. Copy `.env.example` to `.env` and replace the SMTP placeholders with credentials from your provider. Keep `.env` private; it is ignored by Git.
 
-## Quick Start
-
-1. **Set Environment Variables**
-```bash
-export CHROMA_API_KEY="your_key"
-export PINECONE_API_KEY="your_key"
-export WEAVIATE_URL="your_url"
-export WEAVIATE_API_KEY="your_key"
-export GROQ_API_KEY="your_key"
+```powershell
+Copy-Item .env.example .env
 ```
 
-2. **Process Documents**
-## Run data pipeline first
-jupyter notebook datapipeline.ipynb
-Upload ehr1.md or similar patient records
+If SMTP is not configured, the app still starts, but sign-up and password-reset requests return an explicit configuration error rather than pretending an email was sent.
 
-3. **Generate Insights**
-## Query patient records
-jupyter notebook genaration.ipynb
+## Install and run
 
-## File Structure
+Use Node.js 22.13 or later. From the project root:
 
-├── datapipeline.ipynb # Document processing + vector storage  
-├── genaration.ipynb   # Retrieval + LLM generation  
-├── ehr1.md           # Sample: Jane Doe patient record  
-└── README.md          # This file  
+```powershell
+npm install
+npm start
+```
 
-## Technical Stack
-| Component  | Technology                                      |
-| ---------- | ----------------------------------------------- |
-| Framework  | LangChain + LangChain Community                 |
-| Chunking   | RecursiveCharacterTextSplitter, SemanticChunker |
-| Embeddings | HuggingFace (gte-Qwen2, e5-large, bge-m3)       |
-| Vector DBs | Chroma Cloud, Pinecone, Weaviate                |
-| LLM        | Groq API (gpt-oss-120b)                         |
+Open <http://localhost:3000>. The backend creates the SQLite database and a private authentication secret on first start. Back up `backend/data/` securely; it contains account data and the secret needed to verify email codes.
 
-## Example Patient Data
-Jane A. Doe (processed sample):
+## Authentication
 
-Age: 43, Hypertension, Hyperlipidemia
+- Register with an email address, phone number, account role, and password of at least 12 characters.
+- Enter the one-time code sent to that email to verify the account and sign in.
+- Sessions use random, server-stored tokens in HTTP-only, same-site cookies. “Remember me” keeps a session for seven days; otherwise it expires after 12 hours and the browser cookie is cleared when the browser session ends.
+- Password reset codes are emailed, expire after ten minutes, and invalidate existing sessions when the password changes.
 
-Current: Acute migraine (Jan 21, 2026)
+Run the authentication integration test with:
 
-Meds: Lisinopril 10mg, Atorvastatin 20mg, Sumatriptan PRN
-
-Vitals: BP 122/74, HR 72, BMI 25.0
-
-## Chunking Comparison
-| Method   | Chunks | Strategy                               |
-| -------- | ------ | -------------------------------------- |
-| Fixed    | 38     | chunk_size=100, overlap=0              |
-| Sliding  | 40     | chunk_size=100, overlap=20             |
-| Semantic | 3      | sentence-transformers/all-MiniLM-L6-v2 |
-
-## Usage Example
-
-### After running notebooks, query like:
-### "What medications is Jane Doe taking?"
-### "Show Jane Doe's latest vitals from Jan 2026"
-
-### Response uses ONLY retrieved context (no hallucinations)
-"Lisinopril 10mg daily, Atorvastatin 20mg daily, Sumatriptan 50mg PRN"
-
-## Prerequisites
-Python 3.12+
-Jupyter/Colab environment
-Vector DB accounts (Chroma/Pinecone/Weaviate)
-Groq API key
-
-## Installation
-pip install -r requirements.txt  # Auto-generated from notebooks
-### Includes: langchain, chromadb, pinecone-client, weaviate-client, sentence-transformers
-
-## Contributing
-Fork the repo
-Add new embedding models or vector stores
-Update both notebooks
-Submit PR with notebook outputs
-
-##License
-MIT License - see **LICENSE** file.
+```powershell
+npm test
+```

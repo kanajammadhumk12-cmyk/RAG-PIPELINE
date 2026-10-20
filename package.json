@@ -1,0 +1,18 @@
+{
+  "name": "vme",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VME vehicle assistance app with SQLite-backed authentication",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env backend/server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.4.1",
+    "nodemailer": "^10.1.7"
+  }
+}
